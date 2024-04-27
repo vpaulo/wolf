@@ -1,11 +1,10 @@
-let x = 5 + 5;
+let x = 10;
+let y = 15;
 
-let five = 5;
-let ten = 10;
 
-let add = fn(x, y) {
-  x + y;
+let add = fn(a, b) {
+  a + b;
 }
 
-let result = add(five, ten);
+let result = add(x, y);
 
