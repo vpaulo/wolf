@@ -3,8 +3,8 @@ let y = 15;
 
 
 let add = fn(a, b) {
-  a + b;
+  return a + b;
 }
 
-let result = add(x, y);
+add(x, y);
 

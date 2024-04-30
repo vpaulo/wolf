@@ -3,13 +3,12 @@ package bin
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"log"
 	"os"
 
 	"github.com/vpaulo/wolf/lexer"
-	"github.com/vpaulo/wolf/token"
+	"github.com/vpaulo/wolf/parser"
 )
 
 func Run(in io.Reader, out io.Writer) {
@@ -29,11 +28,22 @@ func Run(in io.Reader, out io.Writer) {
 	}
 
 	l := lexer.New(codes.String())
+	p := parser.New(l)
+	program := p.ParseProgram()
 
-	for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-		fmt.Printf("%+v\n", tok)
+	if len(p.Errors()) != 0 {
+		printParserErrors(out, p.Errors())
 	}
 
+	io.WriteString(out, program.String())
+	io.WriteString(out, "\n")
+
+}
+
+func printParserErrors(out io.Writer, errors []string) {
+	for _, msg := range errors {
+		io.WriteString(out, "\t"+msg+"\n")
+	}
 }
 
 func RunFile(path string) {
