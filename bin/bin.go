@@ -9,6 +9,7 @@ import (
 
 	"github.com/vpaulo/wolf/lexer"
 	"github.com/vpaulo/wolf/parser"
+	"github.com/vpaulo/wolf/evaluator"
 )
 
 func Run(in io.Reader, out io.Writer) {
@@ -35,8 +36,11 @@ func Run(in io.Reader, out io.Writer) {
 		printParserErrors(out, p.Errors())
 	}
 
-	io.WriteString(out, program.String())
-	io.WriteString(out, "\n")
+	evaluated := evaluator.Eval(program)
+	if evaluated != nil {
+	  io.WriteString(out, evaluated.Inspect())
+	  io.WriteString(out, "\n")
+	}
 
 }
 

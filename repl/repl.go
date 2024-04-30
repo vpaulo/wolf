@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/vpaulo/wolf/lexer"
 	"github.com/vpaulo/wolf/parser"
-	//"github.com/vpaulo/wolf/token"
+	"github.com/vpaulo/wolf/evaluator"
 	"io"
 )
 
@@ -27,18 +27,16 @@ func Start(in io.Reader, out io.Writer) {
 		p := parser.New(l)
 
 		program := p.ParseProgram()
-
-		//for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-		//	fmt.Printf("%+v\n", tok)
-		//}
-
 		if len(p.Errors()) != 0 {
 			printParserErrors(out, p.Errors())
 			continue
 		}
-
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
+		
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+		  io.WriteString(out, evaluated.Inspect())
+		  io.WriteString(out, "\n")
+		}
 	}
 }
 
