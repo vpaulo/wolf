@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"github.com/vpaulo/wolf/ast"
 	"github.com/vpaulo/wolf/object"
 )
@@ -50,12 +51,12 @@ func Eval(node ast.Node) object.Object {
 		if isError(left) {
 			return left
 		}
-		
+
 		right := Eval(node.Right)
 		if isError(right) {
 			return right
 		}
-		
+
 		return evalInfixExpression(node.Operator, left, right)
 
 	case *ast.IfExpression:
@@ -182,7 +183,7 @@ func evalIntegerInfixExpression(
 	case "!=":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("unknown operator: %s %s %s",	left.Type(), operator, right.Type())
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 

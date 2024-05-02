@@ -5,7 +5,7 @@ import "fmt"
 type ObjectType string
 
 const (
-	NULL_OBJ = "NULL"
+	NULL_OBJ  = "NULL"
 	ERROR_OBJ = "ERROR"
 
 	INTEGER_OBJ = "INTEGER"
