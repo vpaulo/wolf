@@ -10,10 +10,12 @@ import (
 	"github.com/vpaulo/wolf/lexer"
 	"github.com/vpaulo/wolf/parser"
 	"github.com/vpaulo/wolf/evaluator"
+	"github.com/vpaulo/wolf/object"
 )
 
 func Run(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	var codes bytes.Buffer
 	for {
@@ -36,7 +38,7 @@ func Run(in io.Reader, out io.Writer) {
 		printParserErrors(out, p.Errors())
 	}
 
-	evaluated := evaluator.Eval(program)
+	evaluated := evaluator.Eval(program, env)
 	if evaluated != nil {
 	  io.WriteString(out, evaluated.Inspect())
 	  io.WriteString(out, "\n")

@@ -3,16 +3,18 @@ package repl
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"github.com/vpaulo/wolf/lexer"
 	"github.com/vpaulo/wolf/parser"
 	"github.com/vpaulo/wolf/evaluator"
-	"io"
+	"github.com/vpaulo/wolf/object"
 )
 
 const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Printf(PROMPT)
@@ -32,7 +34,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 		
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 		  io.WriteString(out, evaluated.Inspect())
 		  io.WriteString(out, "\n")
