@@ -4,7 +4,7 @@ let y = 15;
 
 let add = fn(a, b) {
   return a + b;
-}
+};
 
-add(x, y);
+puts(add(x, y));
 
