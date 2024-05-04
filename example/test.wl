@@ -8,5 +8,3 @@ let add = fn(a, b) {
 
 add(x, y);
 
-5 + 45
-

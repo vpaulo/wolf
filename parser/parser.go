@@ -2,10 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"strconv"
 	"github.com/vpaulo/wolf/ast"
 	"github.com/vpaulo/wolf/lexer"
 	"github.com/vpaulo/wolf/token"
+	"strconv"
 )
 
 const (
@@ -37,7 +37,7 @@ type (
 )
 
 type Parser struct {
-	l *lexer.Lexer
+	l      *lexer.Lexer
 	errors []string
 
 	curToken  token.Token
@@ -71,7 +71,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
-	
+
 	// Read two tokens, so curToken and peekToken are both set
 	p.nextToken()
 	p.nextToken()

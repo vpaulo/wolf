@@ -1,6 +1,12 @@
 package object
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"strings"
+
+	"github.com/vpaulo/wolf/ast"
+)
 
 type ObjectType string
 

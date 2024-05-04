@@ -129,14 +129,10 @@ func newToken(tokenType token.TokenType, char byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(char)}
 }
 
-
 func isLetter(char byte) bool {
 	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
 }
 
-
 func isDigit(char byte) bool {
 	return '0' <= char && char <= '9'
 }
-
-

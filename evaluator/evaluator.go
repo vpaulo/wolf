@@ -26,7 +26,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return Eval(node.Expression, env)
 
 	case *ast.ReturnStatement:
-		val := Eval(node.ReturnValue)
+		val := Eval(node.ReturnValue, env)
 		if isError(val) {
 			return val
 		}
@@ -68,7 +68,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
-		
+
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
