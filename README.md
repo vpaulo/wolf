@@ -8,34 +8,34 @@ Learn the basics of building your own programing language following, How to buil
 This language aims to be simple and easy to learn, it should be easy to install and update compiler.
 
 ### Phase 1
-- [] Create a new rust package to initialise the Wolf scripting language
-- [] Create initial documentation showing a draft of the language capabilities
-- [] Create the initial draft of grammar/syntax of the language
-- [] Use pest to create the language grammar and tokens
-- [] Create initial cli to help with development and testing
+- [ ] Create a new rust package to initialise the Wolf scripting language
+- [ ] Create initial documentation showing a draft of the language capabilities
+- [ ] Create the initial draft of grammar/syntax of the language
+- [ ] Use pest to create the language grammar and tokens
+- [ ] Create initial cli to help with development and testing
 
 ### Phase 2
-- [] Build interpreter
-- [] Build compiler
+- [ ] Build interpreter
+- [ ] Build compiler
 
 At the end  of this phase you should have a working programming language with the bare minimun functionality, no standart library.
 
 ### Phase 3
-- [] Build garbage collector
-- [] Build JIT
+- [ ] Build garbage collector
+- [ ] Build JIT
 
 we should be able to execute the script in the command line using the JIT
 
 ### Phase 4
-- [] Build AOT
+- [ ] Build AOT
 
 we should be able to create executables of the script
 
 ### Phase 5
-- [] Create standart library for string utilities
-- [] Create standart library for number utilities
-- [] Create standart library for array utilities
-- [] Create standart library for hashmap utilities
+- [ ] Create standart library for string utilities
+- [ ] Create standart library for number utilities
+- [ ] Create standart library for array utilities
+- [ ] Create standart library for hashmap utilities
 
 ## Stage 2
 This stage is to create your own "browser" like application that will have an input that will accept a link to a script in our language and draw ui.
