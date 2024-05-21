@@ -190,3 +190,181 @@ end
 var point: Point = Point();
 ```
 
+### GRAMMAR Helpers
+https://github.com/abhimanyu003/qubit ,  https://github.com/lyledean1/cyclang
+
+PROGRAM                <-  STATEMENTS
+
+STATEMENTS             <-  (STATEMENT ';'?)*
+STATEMENT              <-  ASSIGNMENT / RETURN / EXPRESSION_STATEMENT
+
+ASSIGNMENT             <-  'let' IDENTIFIER '=' EXPRESSION
+RETURN                 <-  'return' EXPRESSION
+EXPRESSION_STATEMENT   <-  EXPRESSION
+
+EXPRESSION             <-  INFIX_EXPR(PREFIX_EXPR, INFIX_OPE)
+INFIX_EXPR(ATOM, OPE)  <-  ATOM (OPE ATOM)* {
+                             precedence
+                               L == !=
+                               L < >
+                               L + -
+                               L * /
+                           }
+
+IF                     <-  'if' '(' EXPRESSION ')' BLOCK ('else' BLOCK)?
+
+FUNCTION               <-  'fn' '(' PARAMETERS ')' BLOCK
+PARAMETERS             <-  LIST(IDENTIFIER, ',')
+
+BLOCK                  <-  '{' STATEMENTS '}'
+
+CALL                   <-  PRIMARY (ARGUMENTS / INDEX)*
+ARGUMENTS              <-  '(' LIST(EXPRESSION, ',') ')'
+INDEX                  <-   '[' EXPRESSION ']'
+
+PREFIX_EXPR            <-  PREFIX_OPE* CALL
+PRIMARY                <-  IF / FUNCTION / ARRAY / HASH / INTEGER / BOOLEAN / NULL / IDENTIFIER / STRING / '(' EXPRESSION ')'
+
+ARRAY                  <-  '[' LIST(EXPRESSION, ',') ']'
+
+HASH                   <-  '{' LIST(HASH_PAIR, ',') '}'
+HASH_PAIR              <-  EXPRESSION ':' EXPRESSION
+
+IDENTIFIER             <-  < [a-zA-Z]+ >
+INTEGER                <-  < [0-9]+ >
+STRING                 <-  < ["] < (!["] .)* > ["] >
+BOOLEAN                <-  'true' / 'false'
+NULL                   <-  'null'
+PREFIX_OPE             <-  < [-!] >
+INFIX_OPE              <-  < [-+/*<>] / '==' / '!=' >
+
+KEYWORD                <-  'null' | 'true' | 'false' | 'let' | 'return' | 'if' | 'else' | 'fn'
+
+LIST(ITEM, DELM)       <-  (ITEM (~DELM ITEM)*)?
+
+LINE_COMMENT           <-  '//' (!LINE_END .)* &LINE_END
+LINE_END               <-  '\r\n' / '\r' / '\n' / !.
+
+%whitespace            <-  ([ \t\r\n]+ / LINE_COMMENT)*
+%word                  <-  [a-zA-Z]+
+
+
+
+
+expression_list = { SOI ~ ( stmt_inner | expression_list_inner ) ~ (WHITESPACE* ~ (stmt_inner | expression_list_inner )*) ~ EOI }
+stmt_inner = _{ if_stmt | while_stmt| for_stmt | func_stmt | block_stmt }
+expression_list_inner = _{((( expression |  index_stmt  |let_stmt  | print_stmt | call_stmt | grouping ) ~ (semicolon ~ WHITESPACE? ~ (binary | expression |index_stmt| let_stmt |  print_stmt | call_stmt | grouping))*) ~ semicolon)}
+expression = _ { binary | literal }
+
+
+// for loop 
+initialization = { "let" ~ name ~ WHITESPACE? ~ "=" ~ WHITESPACE? ~ number }
+iteration = { name ~ WHITESPACE? ~ ("++" | "--") }
+condition = { name ~ WHITESPACE? ~ ("<" | "<=" | ">" | ">=" ) ~ WHITESPACE? ~ number }
+for_stmt = { "for" ~ WHITESPACE? ~ "(" ~ initialization ~ ";" ~ condition ~ ";" ~ iteration ~ ")" ~ block_stmt }
+
+// logical types
+if_stmt = { "if" ~ WHITESPACE? ~ "(" ~ (expression | name ) ~ ")" ~ WHITESPACE? ~ block_stmt ~ (WHITESPACE? ~ "else" ~ block_stmt)? }
+while_stmt = {"while" ~ WHITESPACE? ~ "(" ~ (expression | name) ~ ")" ~ WHITESPACE? ~ block_stmt}
+block_stmt = { "{" ~ WHITESPACE? ~ (return_stmt | expression_list_inner | stmt_inner | WHITESPACE?) ~ (WHITESPACE? ~ (return_stmt | expression_list_inner | stmt_inner)*) ~ (WHITESPACE*)? ~ return_stmt? ~ WHITESPACE? ~ "}" }
+
+// let statements and functions
+let_stmt = { (((("let" ~ WHITESPACE?)? ~ name)) ~ WHITESPACE?) ~ (colon ~ type_name ~ WHITESPACE?)? ~ assignment_stmt}
+index_stmt = {list_index ~ WHITESPACE?  ~ assignment_stmt  }
+assignment_stmt = _{equal ~ WHITESPACE? ~ (list_index | call_stmt | expression | grouping | name)}
+func_stmt = { "fn" ~ WHITESPACE? ~ name ~ "(" ~ func_arg* ~ ")" ~ (WHITESPACE? ~ arrow ~ WHITESPACE? ~ type_name)? ~ WHITESPACE? ~ block_stmt }
+func_arg = { WHITESPACE? ~ type_name ~ WHITESPACE? ~ name ~ WHITESPACE? ~ comma? }
+type_name = { base_type | list_type}
+call_stmt = { name ~ "(" ~ (expression | name)? ~ (comma ~ (expression | name))* ~ ")" }
+print_stmt = { "print(" ~ (call_stmt | list_index | expression | name ) ~ ")" }
+string_type = {"string"}
+i32_type = {"i32"}
+i64_type = {"i64"}
+bool_type = { "bool"}
+base_type = _{bool_type | i32_type | i64_type | string_type}
+list_type = {"List<" ~  (base_type | list_type )~ ">"}
+// binary statemeents
+binary = {  operand ~ WHITESPACE? ~ operator_sequence }
+operand = _{ literal ~ WHITESPACE? | grouping | call_stmt | name  }
+operator_sequence = _{ operator ~ WHITESPACE* ~ operand ~ (WHITESPACE* ~ operator_sequence)? }
+operator = { "==" | "!=" | ">=" | "<=" | ">" | "<" | "+" | "-" | "*" | "/" | "^" }
+
+grouping = { "(" ~ expression ~ ")" }
+literal = { number | string | bool | nil | list  }
+
+list = { lbracket ~ WHITESPACE? ~ literal ~ (WHITESPACE? ~ "," ~ WHITESPACE? ~ literal)* ~ rbracket }
+list_index = {(call_stmt  |expression | name) ~ lbracket ~ (expression  |number | name | call_stmt) ~ rbracket}
+name = { (alpha | "_") ~ (alpha | digits | "_")* }
+number = { "-"? ~ digits }
+digits = @{ ASCII_DIGIT+ }
+alpha = { ASCII_ALPHA | "_" }
+string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+nil = { "nil" }
+bool = { "true" | "false" }
+equal = { "=" }
+semicolon = { ";" }
+colon = { ":" }
+arrow = { "->" }
+lbracket  = {"["}
+rbracket = {"]"}
+return_keyword = _{ "return" }
+return_stmt = { return_keyword ~ WHITE_SPACE? ~ ((binary | grouping | literal | name | call_stmt)? ~ WHITESPACE? ~ semicolon?)? }
+comma = { WHITESPACE? ~ "," ~ WHITESPACE? }
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+
+
+
+
+
+
+
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+
+// Identifier
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+// Numbers
+int = @{ ("+" | "-")? ~ ASCII_DIGIT+ }
+float = @{ int ~ "." ~ ASCII_DIGIT+ ~ (^"e" ~ int)? }
+// float = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
+number = _{ float | int }
+
+// Strings
+string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+
+null = { "nil" }
+
+boolean = { "true" | "false" }
+
+// Operations on numbers
+operation = _{ subtract | add | multiply | divide | power | modulus }
+add         = { "+" }
+subtract    = { "-" }
+multiply    = { "*" }
+divide      = { "/" }
+power       = { "^" }
+modulus     = { "%" }
+
+type = { base_type }
+base_type = _{ "bool" | "int" | "float" | "string" }
+
+parameters = { ( ident ~ ( "," ~ ident )* )? }
+
+atom = _{ block_stmt | if_stmt | function_stmt | call_stmt | boolean | null | ident | number | string | "(" ~ expression ~ ")"  }
+expression = { atom ~ (operation ~ atom)* }
+
+// expression_stmt = { expression }
+return_stmt = { "return" ~ expression }
+let_stmt = { "let" ~ ident ~ ( ":" ~ type )? ~ assign_stmt }
+assign_stmt = { "=" ~ expression }
+
+if_stmt = { "if" ~ expression ~ block_stmt }
+function_stmt = { "fn" ~ "(" ~ parameters ~ ")" ~ ( "->" ~ type )? ~ block_stmt }
+block_stmt = { "::" ~ statements ~ "end" }
+call_stmt = { ident ~ "(" ~ (expression | ident)? ~ ("," ~ (expression | ident))* ~ ")" }
+
+statement = { let_stmt | return_stmt | expression }
+statements = { (statement ~ ";")* }
+
+program = _{ SOI ~ statements ~ EOI }
