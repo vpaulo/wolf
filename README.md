@@ -368,3 +368,84 @@ statement = { let_stmt | return_stmt | expression }
 statements = { (statement ~ ";")* }
 
 program = _{ SOI ~ statements ~ EOI }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+program = { SOI ~ ( stmt_inner | expression_list_inner ) ~ (WHITESPACE* ~ (stmt_inner | expression_list_inner )*) ~ EOI }
+stmt_inner = _{ if_stmt | func_stmt | block_stmt }
+expression_list_inner = _{((( expression  |let_stmt  | print_stmt | call_stmt | grouping ) ~ (semicolon ~ WHITESPACE? ~ (binary | expression | let_stmt |  print_stmt | call_stmt | grouping))*) ~ semicolon)}
+expression = _{ binary | literal }
+
+
+// logical types
+if_stmt = { "if" ~ WHITESPACE? ~ "(" ~ (expression | name ) ~ ")" ~ WHITESPACE? ~ block_stmt ~ (WHITESPACE? ~ "else" ~ block_stmt)? }
+block_stmt = { "::" ~ WHITESPACE? ~ (return_stmt | expression_list_inner | stmt_inner | WHITESPACE?) ~ (WHITESPACE? ~ (return_stmt | expression_list_inner | stmt_inner)*) ~ (WHITESPACE*)? ~ return_stmt? ~ WHITESPACE? ~ "end" }
+
+// let statements and functions
+let_stmt = { (((("let" ~ WHITESPACE?)? ~ name)) ~ WHITESPACE?) ~ (colon ~ type_name ~ WHITESPACE?)? ~ assignment_stmt}
+assignment_stmt = _{equal ~ WHITESPACE? ~ (call_stmt | expression | grouping | name)}
+func_stmt = { "fn" ~ WHITESPACE? ~ name ~ "(" ~ func_arg* ~ ")" ~ (WHITESPACE? ~ arrow ~ WHITESPACE? ~ type_name)? ~ WHITESPACE? ~ block_stmt }
+// func_arg = { WHITESPACE? ~ type_name ~ WHITESPACE? ~ name ~ WHITESPACE? ~ comma? }
+func_arg = { WHITESPACE? ~ name ~ (colon ~ WHITESPACE? ~ type_name)? ~ WHITESPACE? ~ comma? }
+type_name = _{ base_type }
+call_stmt = { name ~ "(" ~ (expression | name)? ~ (comma ~ (expression | name))* ~ ")" }
+print_stmt = { "print(" ~ (call_stmt | expression | name ) ~ ")" }
+
+string_type = {"string"}
+i32_type = {"i32"}
+i64_type = {"i64"}
+float_type = {"float"}
+int_type = {"int"}
+bool_type = { "bool"}
+
+base_type = _{bool_type | float_type | int_type | i32_type | i64_type | string_type}
+
+// binary statements
+binary = {  operand ~ WHITESPACE? ~ operator_sequence }
+operand = _{ literal ~ WHITESPACE? | grouping | call_stmt | name  }
+operator_sequence = _{ operator ~ WHITESPACE* ~ operand ~ (WHITESPACE* ~ operator_sequence)? }
+operator = { "==" | "!=" | ">=" | "<=" | ">" | "<" | "+" | "-" | "*" | "/" | "^" | "%" }
+
+grouping = { "(" ~ expression ~ ")" }
+literal = _{ number | string | bool | nil  }
+
+name = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+int = @{ ("+" | "-")? ~ ASCII_DIGIT+ }
+float = @{ int ~ "." ~ ASCII_DIGIT+ ~ (^"e" ~ int)? }
+number = _{ float | int  }
+string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+
+nil = { "nil" }
+bool = { "true" | "false" }
+equal = { "=" }
+semicolon = { ";" }
+colon = { ":" }
+arrow = { "->" }
+
+return_stmt = { "return" ~ WHITE_SPACE? ~ ((binary | grouping | literal | name | call_stmt)? ~ WHITESPACE? ~ semicolon?)? }
+comma = { WHITESPACE? ~ "," ~ WHITESPACE? }
+WHITESPACE = _{ " " | "\t" | NEWLINE }

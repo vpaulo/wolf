@@ -1,54 +1,64 @@
-program = { SOI ~ ( stmt_inner | expression_list_inner ) ~ (WHITESPACE* ~ (stmt_inner | expression_list_inner )*) ~ EOI }
-stmt_inner = _{ if_stmt | func_stmt | block_stmt }
-expression_list_inner = _{((( expression  |let_stmt  | print_stmt | call_stmt | grouping ) ~ (semicolon ~ WHITESPACE? ~ (binary | expression | let_stmt |  print_stmt | call_stmt | grouping))*) ~ semicolon)}
-expression = _{ binary | literal }
+program = { SOI ~ statements ~ EOI }
 
+statements = { (statement | decl_var | decl_fun | decl_struct | decl_impl)* ~ ";"? } // if semicolon is removed the parser breaks for the last option for some reason
 
-// logical types
-if_stmt = { "if" ~ WHITESPACE? ~ "(" ~ (expression | name ) ~ ")" ~ WHITESPACE? ~ block_stmt ~ (WHITESPACE? ~ "else" ~ block_stmt)? }
-block_stmt = { "::" ~ WHITESPACE? ~ (return_stmt | expression_list_inner | stmt_inner | WHITESPACE?) ~ (WHITESPACE? ~ (return_stmt | expression_list_inner | stmt_inner)*) ~ (WHITESPACE*)? ~ return_stmt? ~ WHITESPACE? ~ "end" }
+decl_var = { "var" ~ ident ~ ( ":" ~ types )? ~ "=" ~ expression }
+decl_fun = { "fn" ~ function }
+decl_struct = { "struct" ~ ident ~ ( "{" ~ struct_fields ~ "}" )? ~ ";"? } 
+decl_impl = { "impl" ~ ident ~ inherit? ~ "{" ~ decl_fun* ~ "}" ~ ";"? }
 
-// let statements and functions
-let_stmt = { (((("let" ~ WHITESPACE?)? ~ name)) ~ WHITESPACE?) ~ (colon ~ type_name ~ WHITESPACE?)? ~ assignment_stmt}
-assignment_stmt = _{equal ~ WHITESPACE? ~ (call_stmt | expression | grouping | name)}
-func_stmt = { "fn" ~ WHITESPACE? ~ name ~ "(" ~ func_arg* ~ ")" ~ (WHITESPACE? ~ arrow ~ WHITESPACE? ~ type_name)? ~ WHITESPACE? ~ block_stmt }
-// func_arg = { WHITESPACE? ~ type_name ~ WHITESPACE? ~ name ~ WHITESPACE? ~ comma? }
-func_arg = { WHITESPACE? ~ name ~ (colon ~ WHITESPACE? ~ type_name)? ~ WHITESPACE? ~ comma? }
-type_name = _{ base_type }
-call_stmt = { name ~ "(" ~ (expression | name)? ~ (comma ~ (expression | name))* ~ ")" }
-print_stmt = { "print(" ~ (call_stmt | expression | name ) ~ ")" }
+struct_fields = { single_field ~ ( "," ~ single_field )* }
+single_field = { ident ~ ":" ~ types }
+inherit = { "<-" ~ ident }
 
-string_type = {"string"}
-i32_type = {"i32"}
-i64_type = {"i64"}
-float_type = {"float"}
-int_type = {"int"}
-bool_type = { "bool"}
+statement = { stmt_if | stmt_for | small_stmt }
+stmt_if = { "if" ~ "(" ~ expression ~ ")" ~ stmt_block ~ ( "else" ~ stmt_block )? }
+stmt_for = { "for" ~ ident ~ "in" ~ ident ~ stmt_block } // TODO this later
+small_stmt = { stmt_expr | stmt_block | stmt_print | stmt_printLn | stmt_return }
+stmt_expr = { expression ~ ";"? }
+stmt_block = { "::" ~ statements ~ "end" }
+stmt_print = { "print" ~ expression ~ ";" }
+stmt_printLn = { "println" ~ expression ~ ";" }
+stmt_return = { "return" ~ expression? ~ ";" }
 
-base_type = _{bool_type | float_type | int_type | i32_type | i64_type | string_type}
+expression = { expr_assign | expr_logic_or | expr_logic_and | expr_equality | expr_comparison | expr_term | expr_factor | expr_prefix | expr_call | expr_primary }
+expr_assign = { (ident ~ "=" ~ expression) } // TODO object and array assign
+expr_logic_or = { "or" }
+expr_logic_and = { "and" }
+expr_equality = { "eq" | "ne" }
+expr_comparison = { "gt" | "ge" | "lt" | "le" }
+expr_term = { "+" | "-" }
+expr_factor = { "*" | "/" | "%" | "^" }
+expr_prefix = { "not" }
+expr_call = { "(" ~ ANY ~ ")" } // TODO args and object, array and super
+expr_primary = { nil | bool | string | number | expr_struct | expr_array | "(" ~ expression* ~ ")" }
+expr_struct = { ident ~ "{" ~ expr_struct_fields ~ "}" }
+expr_struct_fields = { expr_struct_field ~ ( "," ~ expr_struct_field )* }
+expr_struct_field = { ident ~  ":" ~ expression }
+expr_array = { "[" ~ array ~ "]" }
+//expr_var = { ident } // TODO
+//expr_self = { ANY } // TODO
 
-// binary statements
-binary = {  operand ~ WHITESPACE? ~ operator_sequence }
-operand = _{ literal ~ WHITESPACE? | grouping | call_stmt | name  }
-operator_sequence = _{ operator ~ WHITESPACE* ~ operand ~ (WHITESPACE* ~ operator_sequence)? }
-operator = { "==" | "!=" | ">=" | "<=" | ">" | "<" | "+" | "-" | "*" | "/" | "^" | "%" }
+function = { ident ~ "(" ~ params ~ ")" ~ ( "->" ~ types )? ~ stmt_block }
+params = { param ~ ( "," ~ param )* }
+param = { ident ~ ( ":" ~ types )? }
+array = { expression ~ ( "," ~ expression )* } 
 
-grouping = { "(" ~ expression ~ ")" }
-literal = _{ number | string | bool | nil  }
-
-name = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
-int = @{ ("+" | "-")? ~ ASCII_DIGIT+ }
-float = @{ int ~ "." ~ ASCII_DIGIT+ ~ (^"e" ~ int)? }
-number = _{ float | int  }
-string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+types = { type_string | type_number | type_bool | type_nil | type_fn | type_struct | type_array }
+type_string = { "string" }
+type_number = { "number" }
+type_bool = { "bool" }
+type_nil = { "nil" }
+type_fn = { "fn" }
+type_struct = { ident }
+type_array = { "vec<" ~ types? ~ ">" }
 
 nil = { "nil" }
-bool = { "true" | "false" }
-equal = { "=" }
-semicolon = { ";" }
-colon = { ":" }
-arrow = { "->" }
+bool = { "false" | "true" }
+string = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+number = ${ ASCII_DIGIT+ ~ ( "." ~ ASCII_DIGIT+ )? }
 
-return_stmt = { "return" ~ WHITE_SPACE? ~ ((binary | grouping | literal | name | call_stmt)? ~ WHITESPACE? ~ semicolon?)? }
-comma = { WHITESPACE? ~ "," ~ WHITESPACE? }
+// Identifier
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
 WHITESPACE = _{ " " | "\t" | NEWLINE }

@@ -3,11 +3,25 @@ name = "wolf"
 version = "0.0.1"
 
 authors = ["Vitor Rodrigues <github.com/vpaulo>"]
+categories = ["programming-language"]
+description = "Wolf Programming Language that is designed to be simple"
+keywords = [
+    "compiler",
+    "interpreter",
+    "programming-language",
+    "wolf",
+]
+license = "MIT"
+repository = "https://github.com/vpaulo/wolf"
 edition = "2021"
 rust-version = "1.75"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.86"
+clap = { version = "4.5.6", features = ["derive"] }
+clap_derive = "4.5.5"
 pest = "2.7.10"
 pest_derive = "2.7.10"
+thiserror = "1.0.61"
